@@ -154,7 +154,7 @@ prd_arr = [
     img: "../assets/images/yg-yfj.png",
   },
 ];
-
+var prd_arr_pan = [...prd_arr]
 // end data mẫu
 
 var a_nodde_arr = $(".pages a");
@@ -164,11 +164,44 @@ for (var node_item of a_nodde_arr) {
 }
 
 var current = 1;
-var rows_per_page = 6;
-var total_rows = prd_arr.length;
-var total_pages = Math.ceil(total_rows / rows_per_page);
 
-paginate(current);
+paginate(prd_arr, current);
+
+$(".filters ul li").click(function (e) {
+  e.preventDefault();
+  // console.log($(this).data("filter"));
+
+  var temp = []
+  for (var item of prd_arr) {
+    if (temp.indexOf(item.sorts) == -1) {
+      temp.push(item.sorts)
+    }
+  }
+
+  var filter = $(this).data("filter")
+  var filtered_prd = []
+
+  switch (filter) {
+    case "*":
+      filtered_prd = [...prd_arr]
+      break;
+  
+    default:
+      filtered_prd = prd_arr.filter(prd_item => prd_item.sorts === temp[temp.indexOf(filter)])
+      break;
+  }
+
+  prd_arr_pan = [...filtered_prd]
+
+  // console.log(filtered_prd)
+
+
+  paginate(filtered_prd, 1);
+
+  // console.log(filtered_prd)
+});
+
+$(".filters ul li.active").data("filter");
 
 function buildProduct(prd_item) {
   var prd_node = `
@@ -185,15 +218,20 @@ function buildProduct(prd_item) {
   return prd_node;
 }
 
-function paginate(current) {
+function paginate(paginate_arr, current) {
+  
+var rows_per_page = 6;
+var total_rows = paginate_arr.length;
+var total_pages = Math.ceil(total_rows / rows_per_page);
+
   var per_row = rows_per_page * (current - 1);
 
   var prd_arr_node = [];
   var prd_arr_node_tshirt = [];
-  for (var i = 0; i < prd_arr.length; i++) {
+  for (var i = 0; i < paginate_arr.length; i++) {
     if (i >= per_row && i < per_row + rows_per_page) {
       // var prd_item_node = `product: ${prd_arr[i].name}`;
-      var prd_item_node = buildProduct(prd_arr[i]);
+      var prd_item_node = buildProduct(paginate_arr[i]);
       prd_arr_node.push(prd_item_node);
     }
   }
@@ -248,7 +286,7 @@ function paginate(current) {
     e.preventDefault();
     // console.log($(this).data("id"));
     current = $(this).data("id");
-    paginate(current);
+    paginate(prd_arr_pan, current);
   });
 }
 $(".page-next").click(function (e) {
@@ -257,7 +295,7 @@ $(".page-next").click(function (e) {
   page += 1;
   console.log(page);
   console.log(typeof page);
-  paginate(page);
+  paginate(prd_arr, page);
 });
 
 //   $(".page-prev").click(function (e) {
@@ -271,7 +309,8 @@ var vijsOut = {
   post: function (action_XMLReq, data_XMLReq) {
     //console.log(action_XMLReq,data_XMLReq);
     if (data_XMLReq == null) data_XMLReq = {};
-    var api =  "https://toan.boffice.vn/&action_XMLReq=web_user/" + action_XMLReq;
+    var api =
+      "https://toan.boffice.vn/&action_XMLReq=web_user/" + action_XMLReq;
     var xhttp = new XMLHttpRequest();
     return new Promise((resolve, reject) => {
       xhttp.onreadystatechange = function () {
@@ -284,11 +323,11 @@ var vijsOut = {
       };
       xhttp.open("POST", api, true);
       xhttp.setRequestHeader("accept", "text/api");
-      xhttp.setRequestHeader("Content-type","text/plain;charset=UTF-8");
+      xhttp.setRequestHeader("Content-type", "text/plain;charset=UTF-8");
       xhttp.send(JSON.stringify(data_XMLReq));
     });
-  }
-}
+  },
+};
 
 function register() {
   var data = $("#form-register")
@@ -300,17 +339,16 @@ function register() {
   if (data.passcf != data.pass) {
     alert("Xác nhận mật khẩu sai");
   } else {
-    vijsOut.post("dangki_test", data).then(response => {
-      response = JSON.parse(response)
-      if(response.alert){
-        alert("Đăng kí tài khoản thành công!")
+    vijsOut.post("dangki_test", data).then((response) => {
+      response = JSON.parse(response);
+      if (response.alert) {
+        alert("Đăng kí tài khoản thành công!");
         window.location.href = "../../html1/login.html";
-    }else{
+      } else {
         alert("username hoặc email đã được đăng kí");
-    }
+      }
     });
   }
-
 }
 
 function login() {
@@ -320,14 +358,12 @@ function login() {
       obj[item.name] = item.value;
       return obj;
     }, {});
-    vijsOut.post("login_test", data).then(response => {
-      response = JSON.parse(response)
-      if(response.alert){
-        window.location.href = "../../html2/index.html";
-        
-    }else{
-        alert("Bạn nhập sai thông tin");
+  vijsOut.post("login_test", data).then((response) => {
+    response = JSON.parse(response);
+    if (response.alert) {
+      window.location.href = "../../html2/index.html";
+    } else {
+      alert("Bạn nhập sai thông tin");
     }
-    });
+  });
 }
-
